@@ -1,0 +1,141 @@
+name: update-formula
+
+on:
+  schedule:
+    # 06:00 JST (21:00 UTC previous day)
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to sync (defaults to latest)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  funpou:
+    name: Sync funpou formula
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM_REPO: to4iki/funpou
+      FORMULA_PATH: Formula/funpou.rb
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v4
+
+      - name: Resolve target release
+        id: release
+        run: |
+          set -euo pipefail
+
+          if [ -n "${{ inputs.tag }}" ]; then
+            tag="${{ inputs.tag }}"
+          else
+            tag=$(gh release view --repo "$UPSTREAM_REPO" --json tagName --jq .tagName)
+          fi
+
+          version="${tag#v}"
+          current=$(awk -F '"' '/^[[:space:]]*version "/ { print $2; exit }' "$FORMULA_PATH")
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+
+          if [ "$version" = "$current" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Formula already at $current; nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Updating formula: $current -> $version"
+          fi
+
+      - name: Fetch asset digests
+        if: steps.release.outputs.changed == 'true'
+        id: digests
+        run: |
+          set -euo pipefail
+
+          tag="${{ steps.release.outputs.tag }}"
+          assets_json=$(gh release view "$tag" --repo "$UPSTREAM_REPO" --json assets --jq '.assets')
+
+          for target in \
+            aarch64-apple-darwin \
+            x86_64-apple-darwin \
+            aarch64-unknown-linux-gnu \
+            x86_64-unknown-linux-gnu
+          do
+            asset="fnp-${target}.tar.gz"
+            url=$(jq -r --arg n "$asset" '.[] | select(.name == $n) | .url' <<<"$assets_json")
+            if [ -z "$url" ] || [ "$url" = "null" ]; then
+              echo "::error::asset $asset not found in release $tag"
+              exit 1
+            fi
+            # Download and compute sha256 to avoid trusting the API digest blindly.
+            tmp=$(mktemp)
+            curl -sSL -o "$tmp" "$url"
+            sha=$(sha256sum "$tmp" | awk '{ print $1 }')
+            rm -f "$tmp"
+            var=$(echo "$target" | tr '[:lower:]-' '[:upper:]_')
+            echo "SHA_${var}=$sha" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Update formula
+        if: steps.release.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.release.outputs.version }}"
+          sha_aarch64_darwin="${{ steps.digests.outputs.SHA_AARCH64_APPLE_DARWIN }}"
+          sha_x86_64_darwin="${{ steps.digests.outputs.SHA_X86_64_APPLE_DARWIN }}"
+          sha_aarch64_linux="${{ steps.digests.outputs.SHA_AARCH64_UNKNOWN_LINUX_GNU }}"
+          sha_x86_64_linux="${{ steps.digests.outputs.SHA_X86_64_UNKNOWN_LINUX_GNU }}"
+
+          python3 - "$FORMULA_PATH" \
+            "$version" \
+            "$sha_aarch64_darwin" \
+            "$sha_x86_64_darwin" \
+            "$sha_aarch64_linux" \
+            "$sha_x86_64_linux" <<'PY'
+          import re, sys
+          path, version, d_arm, d_intel, l_arm, l_intel = sys.argv[1:]
+          src = open(path).read()
+
+          src = re.sub(r'version "[^"]+"', f'version "{version}"', src, count=1)
+
+          def replace_sha(text, target, digest):
+              pattern = re.compile(
+                  r'(url "https://github\.com/to4iki/funpou/releases/download/v#\{version\}/fnp-'
+                  + re.escape(target)
+                  + r'\.tar\.gz"\s+sha256 ")[0-9a-f]{64}(")'
+              )
+              new, n = pattern.subn(rf'\g<1>{digest}\g<2>', text, count=1)
+              if n != 1:
+                  raise SystemExit(f"failed to update sha256 for {target}")
+              return new
+
+          src = replace_sha(src, "aarch64-apple-darwin", d_arm)
+          src = replace_sha(src, "x86_64-apple-darwin", d_intel)
+          src = replace_sha(src, "aarch64-unknown-linux-gnu", l_arm)
+          src = replace_sha(src, "x86_64-unknown-linux-gnu", l_intel)
+
+          open(path, "w").write(src)
+          PY
+
+      - name: Create pull request
+        if: steps.release.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: update-funpou-${{ steps.release.outputs.version }}
+          commit-message: "funpou ${{ steps.release.outputs.version }}"
+          title: "funpou ${{ steps.release.outputs.version }}"
+          body: |
+            Automated update of `Formula/funpou.rb` to
+            [`${{ steps.release.outputs.tag }}`](https://github.com/${{ env.UPSTREAM_REPO }}/releases/tag/${{ steps.release.outputs.tag }}).
+
+            Previous version: `${{ steps.release.outputs.current }}`
+          delete-branch: true
