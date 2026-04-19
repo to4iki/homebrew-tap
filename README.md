@@ -14,7 +14,7 @@ brew install <tool>
 install directly:
 
 ```sh
-% brew install to4iki/tap/<tool>
+brew install to4iki/tap/<tool>
 ```
 
 ## Formulae
@@ -52,9 +52,9 @@ export GITHUB_TOKEN=<PAT or gh auth token>
 make update
 ```
 
-### Automatic updates
+### Update via GitHub Actions
 
-The [`update-formula`](.github/workflows/update-formula.yml) workflow runs daily at 06:00 JST
-(and on manual dispatch), executes `make update`, and opens a pull request when any formula
-changes. Only `version`, `url`, and `sha256` are rewritten — hand-edited sections such as
-`def install` and `test do` are preserved.
+Run the [`update-formula`](.github/workflows/update-formula.yml) workflow manually from the
+Actions tab. It executes `make update` and opens a pull request when any formula changes.
+Only `version`, `url`, and `sha256` are rewritten — hand-edited sections such as `def install`
+and `test do` are preserved.

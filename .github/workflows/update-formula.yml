@@ -1,9 +1,9 @@
 name: update-formula
 
 on:
-  schedule:
-    # 06:00 JST (21:00 UTC previous day)
-    - cron: "0 21 * * *"
+  # schedule:
+  #   # 06:00 JST (21:00 UTC previous day)
+  #   - cron: "0 21 * * *"
   workflow_dispatch:
 
 permissions:
