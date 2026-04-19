@@ -4,30 +4,17 @@ Third party homebrew tap to install the tools to4iki is involved in developing.
 
 ## Usage
 
-Add this tap:
+tap and install:
 
 ```sh
 brew tap to4iki/tap
+brew install <tool>
 ```
 
-Install a formula:
+install directly:
 
 ```sh
-brew install to4iki/tap/funpou
-```
-
-Upgrade to the latest version:
-
-```sh
-brew update
-brew upgrade funpou
-```
-
-Uninstall and remove the tap:
-
-```sh
-brew uninstall funpou
-brew untap to4iki/tap
+% brew install to4iki/tap/<tool>
 ```
 
 ## Formulae
