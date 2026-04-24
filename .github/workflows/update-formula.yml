@@ -26,14 +26,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: make update
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+      - name: Commit and push
+        uses: EndBug/add-and-commit@v10
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: update-formulae
-          commit-message: "update formulae via maltmill"
-          title: "update formulae via maltmill"
-          body: |
-            Automated update of Homebrew formulae by
-            [`Songmu/maltmill`](https://github.com/Songmu/maltmill).
-          delete-branch: true
+          add: 'Formula/*.rb'
