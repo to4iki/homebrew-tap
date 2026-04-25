@@ -1,6 +1,6 @@
-# homebrew-tap
+# to4iki/homebrew-tap
 
-Third party homebrew tap to install the tools to4iki is involved in developing.
+A collection of homebrew formulas.
 
 ## Usage
 
