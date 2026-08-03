@@ -22,6 +22,7 @@ brew install to4iki/tap/<tool>
 | Formula | Description | Upstream |
 | --- | --- | --- |
 | [`funpou`](Formula/funpou.rb) | Quick one-line memos with automatic timestamps (`fnp`) | [to4iki/funpou](https://github.com/to4iki/funpou) |
+| [`rigmode`](Formula/rigmode.rb) | Attach work modes to AI coding agent prompts | [to4iki/rigmode](https://github.com/to4iki/rigmode) |
 
 ## Maintenance
 
