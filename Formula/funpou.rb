@@ -1,28 +1,28 @@
 class Funpou < Formula
   desc "Quick one-line memos with automatic timestamps"
   homepage "https://github.com/to4iki/funpou"
-  version "0.1.5"
+  version "0.1.6"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/to4iki/funpou/releases/download/v0.1.5/fnp-darwin-arm64.tar.gz"
-      sha256 "ec6910714da44c5d1d5f38921feee4d591a814213848adcf6704a00c524210e3"
+      url "https://github.com/to4iki/funpou/releases/download/v0.1.6/fnp-darwin-arm64.tar.gz"
+      sha256 "32dfbe1415f8a3a246f50d8227e0e20453837c4736b6af5569efc54aa07d9249"
     end
     if Hardware::CPU.intel?
-      url "https://github.com/to4iki/funpou/releases/download/v0.1.5/fnp-darwin-amd64.tar.gz"
-      sha256 "ed30b7bc404527ec8e226af13d2afce369e5ca0b4ee87e8e338c0c44f108920a"
+      url "https://github.com/to4iki/funpou/releases/download/v0.1.6/fnp-darwin-amd64.tar.gz"
+      sha256 "76af5845b9dc2fe5999956db2b04f32a2652238c630476ae278239e9f516225b"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/to4iki/funpou/releases/download/v0.1.5/fnp-linux-arm64.tar.gz"
-      sha256 "50580ecf5d1763cd4de55dd4285144825b8f6f9c55617fd62fa66a454d79692b"
+      url "https://github.com/to4iki/funpou/releases/download/v0.1.6/fnp-linux-arm64.tar.gz"
+      sha256 "33f0220f45548fe4763d61d931116b12acfbfd8e87ca9edcea6eb00a215102bf"
     end
     if Hardware::CPU.intel?
-      url "https://github.com/to4iki/funpou/releases/download/v0.1.5/fnp-linux-amd64.tar.gz"
-      sha256 "dc662e33a2d64e55941729734dd3d36bf9f7d109fc5547b0bc73289bdb9a0117"
+      url "https://github.com/to4iki/funpou/releases/download/v0.1.6/fnp-linux-amd64.tar.gz"
+      sha256 "106e0a7a940ed7c23e501447d48004eba5ac66a85762a67831f9cd1fb3c8fc84"
     end
   end
 
